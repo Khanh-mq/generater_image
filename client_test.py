@@ -4,15 +4,27 @@ from io import BytesIO
 from PIL import Image
 
 # Thay bằng IP hoặc Domain mà RunPod cung cấp
-API_URL = "https://qp5mx6obrwlnxf-8000.proxy.runpod.net/generate"
+API_URL = "https://7951qnpfhlx13o-8000.proxy.runpod.net/generate"
+
+# Bộ khung Prompt Nhất quán (Không bao giờ thay đổi)
+BASE_PROMPT = "(lung_mat_char:1.1), 1boy, anthro, honey badger, (white stripe on head:1.2), grey body fur, black face mask, yellow eyes, masterpiece, best quality, flat color, kurzgesagt style"
+
+# Trang phục mặc định của nhân vật
+OUTFIT = "wearing casual red jacket, blue jeans"
 
 # Dữ liệu bạn muốn gửi lên server
 payload = {
     "prompts": [
-        {"shot_id": "shot_01", "prompt_text": "lung_mat_char, honey badger, anthro, walking home, carrying backpack, sunset background, residential street, tired expression"},
-        {"shot_id": "shot_02", "prompt_text": "lung_mat_char, honey badger, anthro, drinking coffee, morning sunlight, cozy room"}
+        {
+            "shot_id": "shot_01", 
+            "prompt_text": f"{BASE_PROMPT}, {OUTFIT}, walking home, carrying backpack, tired expression, sunset background, residential street"
+        },
+        {
+            "shot_id": "shot_02", 
+            "prompt_text": f"{BASE_PROMPT}, {OUTFIT}, drinking coffee, holding mug, sitting at table, morning sunlight, cozy room"
+        }
     ],
-    "negative_prompt": "realistic, 3d, photorealistic, blurry, multiple characters",
+    "negative_prompt": "realistic, 3d, photorealistic, blurry, multiple characters, extra limbs, bad anatomy, bad hands, missing fingers, human face, realistic animal, deformed, ugly, messy lines, text, signature, watermark",
     "width": 1280,
     "height": 720,
     "num_steps": 25,

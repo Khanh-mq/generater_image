@@ -12,6 +12,9 @@ fi
 if [ -z "$MODEL_URL" ]; then
     MODEL_URL="https://huggingface.co/Laxhar/noobai-XL-1.1/resolve/main/NoobAI-XL-v1.1.safetensors"
 fi
+if [ -z "$LORA_URL" ]; then
+    LORA_URL="https://huggingface.co/khanhmq/lung_mat_lora/resolve/main/lung_mat-04.safetensors"
+fi
 
 MODEL_PATH="/app/models/noobai_xl_v1.1.safetensors"
 LORA_PATH="/app/models/lora_lung_mat.safetensors"
