@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  lora_api:
+    build: .
+    container_name: lora_api_server
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./models:/app/models
+    environment:
+      - MODEL_URL=${MODEL_URL:-https://huggingface.co/Laxhar/noobai-XL-1.1/resolve/main/NoobAI-XL-v1.1.safetensors}
+      - LORA_URL=${LORA_URL:-https://huggingface.co/duongdan_cua_ban/lora_lung_mat.safetensors}
+    env_file:
+      - .env
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
