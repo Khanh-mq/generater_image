@@ -3,6 +3,16 @@ set -e
 
 mkdir -p /app/models
 
+# Load các biến môi trường từ file .env (nếu chạy trực tiếp không qua Docker)
+if [ -f ".env" ]; then
+    export $(grep -v '^#' .env | xargs)
+fi
+
+# Thiết lập URL mặc định nếu chưa có
+if [ -z "$MODEL_URL" ]; then
+    MODEL_URL="https://huggingface.co/Laxhar/noobai-XL-1.1/resolve/main/NoobAI-XL-v1.1.safetensors"
+fi
+
 MODEL_PATH="/app/models/noobai_xl_v1.1.safetensors"
 LORA_PATH="/app/models/lora_lung_mat.safetensors"
 

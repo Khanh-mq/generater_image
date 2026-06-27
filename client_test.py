@@ -4,7 +4,7 @@ from io import BytesIO
 from PIL import Image
 
 # Thay bằng IP hoặc Domain mà RunPod cung cấp
-API_URL = "http://YOUR_RUNPOD_IP:8000/generate"
+API_URL = "https://qp5mx6obrwlnxf-8000.proxy.runpod.net/generate"
 
 # Dữ liệu bạn muốn gửi lên server
 payload = {
