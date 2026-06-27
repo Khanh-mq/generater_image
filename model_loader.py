@@ -9,14 +9,15 @@ def load_model(model_path: str, lora_path: str = None):
         torch_dtype=torch.float16,
     ).to("cuda")
     
-    if lora_path and os.path.exists(lora_path):
-        print(f"Loading LoRA from {lora_path}...")
-        # Lấy tên file để làm weight_name
-        weight_name = os.path.basename(lora_path)
-        lora_dir = os.path.dirname(lora_path)
-        pipe.load_lora_weights(lora_dir, weight_name=weight_name)
+    if not lora_path or not os.path.exists(lora_path):
+        raise FileNotFoundError(f"❌ LỖI NGHIÊM TRỌNG: Không tìm thấy file LoRA tại {lora_path}. Bắt buộc phải có LoRA để chạy hệ thống!")
+        
+    print(f"Loading LoRA from {lora_path}...")
+    weight_name = os.path.basename(lora_path)
+    lora_dir = os.path.dirname(lora_path)
+    pipe.load_lora_weights(lora_dir, weight_name=weight_name)
     
-    print("Model and LoRA loaded successfully!")
+    print("✅ Model and LoRA loaded successfully!")
     return pipe
 
 def generate_image(pipe, prompt, negative_prompt, width, height, num_steps, guidance_scale, seed, lora_weight):

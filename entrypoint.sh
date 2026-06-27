@@ -47,6 +47,13 @@ else
     echo "✅ LoRA đã tồn tại, bỏ qua bước tải."
 fi
 
+# Kiểm tra chốt chặn cuối cùng: Nếu thiếu LoRA thì đập máy nghỉ chơi!
+if [ ! -f "$LORA_PATH" ]; then
+    echo "❌ LỖI NGHIÊM TRỌNG: Không tìm thấy file LoRA tại $LORA_PATH sau khi tải!"
+    echo "❌ Server không thể khởi động vì bạn yêu cầu bắt buộc phải có LoRA."
+    exit 1
+fi
+
 # 3. Khởi chạy Server
 echo "🚀 Đang khởi động FastAPI Server..."
 exec uvicorn main:app --host 0.0.0.0 --port 8000
