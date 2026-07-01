@@ -1,14 +1,21 @@
 import torch
-from diffusers import StableDiffusionXLPipeline
+from diffusers import StableDiffusionXLPipeline, AutoencoderKL, EulerAncestralDiscreteScheduler
 from transformers import AutoModelForCausalLM, AutoTokenizer
 import os
 
 def load_model(model_path: str, lora_path: str = None):
+    print("Loading SDXL FP16 VAE Fix to prevent color blob corruption...")
+    vae = AutoencoderKL.from_pretrained("madebyollin/sdxl-vae-fp16-fix", torch_dtype=torch.float16)
+
     print(f"Loading base model from {model_path}...")
     pipe = StableDiffusionXLPipeline.from_single_file(
         model_path,
+        vae=vae,
         torch_dtype=torch.float16,
     ).to("cuda")
+    
+    print("Applying EulerAncestralDiscreteScheduler (Required for NoobAI-XL)...")
+    pipe.scheduler = EulerAncestralDiscreteScheduler.from_config(pipe.scheduler.config)
     
     if not lora_path or not os.path.exists(lora_path):
         raise FileNotFoundError(f"❌ LỖI NGHIÊM TRỌNG: Không tìm thấy file LoRA tại {lora_path}. Bắt buộc phải có LoRA để chạy hệ thống!")
