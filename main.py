@@ -87,15 +87,39 @@ async def api_generate(request: GenerationRequest):
                 best_seed = current_seed
                 
                 if item.validation_query:
-                    # Chạy Moondream2 để kiểm tra
-                    md_model = pipe["md_model"]
-                    md_tokenizer = pipe["md_tokenizer"]
-                    encoded_image = md_model.encode_image(image)
+                    # Chạy Qwen2-VL để kiểm tra
+                    vlm_model = pipe["vlm_model"]
+                    vlm_processor = pipe["vlm_processor"]
                     
-                    # Hỏi Moondream (Bắt nó trả lời Yes/No)
-                    question = f"{item.validation_query} Answer Yes or No."
-                    answer = md_model.answer_question(encoded_image, question, md_tokenizer)
-                    print(f"Validation: '{question}' -> Answer: {answer}")
+                    messages = [
+                        {
+                            "role": "user",
+                            "content": [
+                                {"type": "image", "image": image},
+                                {"type": "text", "text": f"{item.validation_query} Answer strictly with 'Yes' or 'No'."},
+                            ],
+                        }
+                    ]
+                    
+                    from qwen_vl_utils import process_vision_info
+                    text_prompt = vlm_processor.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
+                    image_inputs, video_inputs = process_vision_info(messages)
+                    
+                    inputs = vlm_processor(
+                        text=[text_prompt],
+                        images=image_inputs,
+                        videos=video_inputs,
+                        padding=True,
+                        return_tensors="pt"
+                    ).to("cuda")
+                    
+                    generated_ids = vlm_model.generate(**inputs, max_new_tokens=5)
+                    generated_ids_trimmed = [
+                        out_ids[len(in_ids):] for in_ids, out_ids in zip(inputs.input_ids, generated_ids)
+                    ]
+                    answer = vlm_processor.batch_decode(generated_ids_trimmed, skip_special_tokens=True, clean_up_tokenization_spaces=False)[0]
+                    
+                    print(f"Validation: '{item.validation_query}' -> Answer: {answer}")
                     
                     if "yes" in answer.lower():
                         print(f"✅ Image passed validation!")
