@@ -11,6 +11,7 @@ services:
     environment:
       - MODEL_URL=${MODEL_URL:-https://huggingface.co/Laxhar/noobai-XL-1.1/resolve/main/NoobAI-XL-v1.1.safetensors}
       - LORA_URL=${LORA_URL:-https://huggingface.co/duongdan_cua_ban/lora_lung_mat.safetensors}
+      - HF_HOME=/app/models/huggingface_cache
     env_file:
       - .env
     deploy:

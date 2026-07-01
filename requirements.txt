@@ -9,4 +9,5 @@ peft==0.14.0
 accelerate==0.33.0
 safetensors
 hf_transfer
-
+einops
+timm

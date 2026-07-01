@@ -5,6 +5,7 @@ from typing import List, Optional
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from model_loader import load_model, generate_image
+import random
 
 app = FastAPI(title="LoRA Image Generation API")
 
@@ -29,6 +30,7 @@ async def startup_event():
 class PromptItem(BaseModel):
     shot_id: str
     prompt_text: str
+    validation_query: Optional[str] = None
 
 class GenerationRequest(BaseModel):
     prompts: List[PromptItem]
@@ -58,40 +60,77 @@ async def api_generate(request: GenerationRequest):
     results = []
     # Xử lý tuần tự từng prompt trong batch
     for i, item in enumerate(request.prompts):
-        # Có thể dùng seed khác nhau cho mỗi prompt trong batch nếu muốn
         current_seed = request.seed + i
+        current_prompt = item.prompt_text
+        current_cfg = request.guidance_scale
         
-        try:
-            image = generate_image(
-                pipe=pipe,
-                prompt=item.prompt_text,
-                negative_prompt=request.negative_prompt,
-                width=request.width,
-                height=request.height,
-                num_steps=request.num_steps,
-                guidance_scale=request.guidance_scale,
-                seed=current_seed,
-                lora_weight=request.lora_weight
-            )
-            
+        max_retries = 3
+        best_image = None
+        best_seed = current_seed
+        
+        for attempt in range(max_retries):
+            try:
+                print(f"[{item.shot_id}] Attempt {attempt+1}/{max_retries} with seed {current_seed}")
+                image = generate_image(
+                    pipe=pipe["sdxl"],
+                    prompt=current_prompt,
+                    negative_prompt=request.negative_prompt,
+                    width=request.width,
+                    height=request.height,
+                    num_steps=request.num_steps,
+                    guidance_scale=current_cfg,
+                    seed=current_seed,
+                    lora_weight=request.lora_weight
+                )
+                
+                best_image = image
+                best_seed = current_seed
+                
+                if item.validation_query:
+                    # Chạy Moondream2 để kiểm tra
+                    md_model = pipe["md_model"]
+                    md_tokenizer = pipe["md_tokenizer"]
+                    encoded_image = md_model.encode_image(image)
+                    
+                    # Hỏi Moondream (Bắt nó trả lời Yes/No)
+                    question = f"{item.validation_query} Answer Yes or No."
+                    answer = md_model.answer_question(encoded_image, question, md_tokenizer)
+                    print(f"Validation: '{question}' -> Answer: {answer}")
+                    
+                    if "yes" in answer.lower():
+                        print(f"✅ Image passed validation!")
+                        break # Ảnh tốt, thoát vòng lặp retry
+                    else:
+                        print(f"❌ Image failed validation. Retrying...")
+                        current_seed = random.randint(1, 9999999)
+                        if attempt == 0:
+                            current_cfg = max(5.0, current_cfg - 2.0)
+                        elif attempt == 1:
+                            current_prompt = f"({current_prompt}:1.2)"
+                else:
+                    break # Không cần validate, thoát vòng lặp luôn
+                
+            except Exception as e:
+                print(f"Error generating image for shot_id '{item.shot_id}': {str(e)}")
+                if attempt == max_retries - 1:
+                    raise HTTPException(status_code=500, detail=str(e))
+                current_seed = random.randint(1, 9999999)
+
+        if best_image:
             # Chuyển ảnh PIL sang Base64 string để trả về
             buffered = BytesIO()
-            image.save(buffered, format="PNG")
+            best_image.save(buffered, format="PNG")
             img_str = base64.b64encode(buffered.getvalue()).decode("utf-8")
             
             results.append(ImageResult(
                 shot_id=item.shot_id,
                 image_base64=img_str,
-                seed=current_seed,
-                prompt=item.prompt_text
+                seed=best_seed,
+                prompt=current_prompt
             ))
-            
-        except Exception as e:
-            print(f"Error generating image for shot_id '{item.shot_id}': {str(e)}")
-            raise HTTPException(status_code=500, detail=str(e))
             
     return GenerationResponse(results=results)
 
 @app.get("/health")
 def health_check():
-    return {"status": "healthy", "model_loaded": pipe is not None}
+    return {"status": "healthy", "model_loaded": pipe is not None and "sdxl" in pipe}

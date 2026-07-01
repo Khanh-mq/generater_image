@@ -1,5 +1,6 @@
 import torch
 from diffusers import StableDiffusionXLPipeline
+from transformers import AutoModelForCausalLM, AutoTokenizer
 import os
 
 def load_model(model_path: str, lora_path: str = None):
@@ -17,8 +18,20 @@ def load_model(model_path: str, lora_path: str = None):
     lora_dir = os.path.dirname(lora_path)
     pipe.load_lora_weights(lora_dir, weight_name=weight_name)
     
-    print("✅ Model and LoRA loaded successfully!")
-    return pipe
+    print("Loading Moondream2 for image validation...")
+    moondream_id = "vikhyatk/moondream2"
+    moondream_revision = "2024-08-26"
+    md_model = AutoModelForCausalLM.from_pretrained(
+        moondream_id, trust_remote_code=True, revision=moondream_revision, torch_dtype=torch.float16
+    ).to("cuda")
+    md_tokenizer = AutoTokenizer.from_pretrained(moondream_id, revision=moondream_revision)
+    
+    print("✅ All models loaded successfully!")
+    return {
+        "sdxl": pipe,
+        "md_model": md_model,
+        "md_tokenizer": md_tokenizer
+    }
 
 def generate_image(pipe, prompt, negative_prompt, width, height, num_steps, guidance_scale, seed, lora_weight):
     generator = torch.Generator("cuda").manual_seed(seed)
