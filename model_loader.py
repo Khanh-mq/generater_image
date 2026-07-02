@@ -17,13 +17,13 @@ def load_model(model_path: str, lora_path: str = None):
     print("Applying EulerAncestralDiscreteScheduler (Required for NoobAI-XL)...")
     pipe.scheduler = EulerAncestralDiscreteScheduler.from_config(pipe.scheduler.config)
     
-    if not lora_path or not os.path.exists(lora_path):
-        raise FileNotFoundError(f"❌ LỖI NGHIÊM TRỌNG: Không tìm thấy file LoRA tại {lora_path}. Bắt buộc phải có LoRA để chạy hệ thống!")
-        
-    print(f"Loading LoRA from {lora_path}...")
-    weight_name = os.path.basename(lora_path)
-    lora_dir = os.path.dirname(lora_path)
-    pipe.load_lora_weights(lora_dir, weight_name=weight_name)
+    if lora_path and os.path.exists(lora_path):
+        print(f"Loading LoRA from {lora_path}...")
+        weight_name = os.path.basename(lora_path)
+        lora_dir = os.path.dirname(lora_path)
+        pipe.load_lora_weights(lora_dir, weight_name=weight_name)
+    else:
+        print("Bỏ qua bước load LoRA vì không tìm thấy file hoặc cấu hình không yêu cầu.")
     
     print("Loading Qwen2-VL-2B for image validation...")
     qwen_id = "Qwen/Qwen2-VL-2B-Instruct"
@@ -43,6 +43,11 @@ def load_model(model_path: str, lora_path: str = None):
 def generate_image(pipe, prompt, negative_prompt, width, height, num_steps, guidance_scale, seed, lora_weight):
     generator = torch.Generator("cuda").manual_seed(seed)
     
+    kwargs = {}
+    # Chỉ truyền scale cho LoRA nếu lora_weight > 0
+    if lora_weight is not None and lora_weight > 0:
+        kwargs["cross_attention_kwargs"] = {"scale": lora_weight}
+
     image = pipe(
         prompt=prompt,
         negative_prompt=negative_prompt,
@@ -51,7 +56,7 @@ def generate_image(pipe, prompt, negative_prompt, width, height, num_steps, guid
         num_inference_steps=num_steps,
         guidance_scale=guidance_scale,
         generator=generator,
-        cross_attention_kwargs={"scale": lora_weight}
+        **kwargs
     ).images[0]
     
     return image

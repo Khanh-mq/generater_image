@@ -14,10 +14,10 @@ def download_file(url, output_path):
     print(f"Downloaded {output_path}")
 
 if __name__ == "__main__":
-    MODEL_URL = "https://huggingface.co/Laxhar/noobai-XL-1.1/resolve/main/NoobAI-XL-v1.1.safetensors"
+    MODEL_URL = "https://huggingface.co/RunDiffusion/Juggernaut-XL-v9/resolve/main/Juggernaut-XL_v9_RunDiffusionPhoto_v2.safetensors"
     # URL LoRA (bạn cần thay thế bằng URL tải LoRA của bạn hoặc copy thẳng vào máy ảo)
     # LORA_URL = "..." 
     
-    download_file(MODEL_URL, "/workspace/models/noobai_xl_v1.1.safetensors")
+    download_file(MODEL_URL, "/workspace/models/Juggernaut-XL_v9.safetensors")
     
     print("Mô hình đã được tải xong. Hãy đảm bảo bạn đã copy file LoRA của mình vào /workspace/models/lora_lung_mat.safetensors")

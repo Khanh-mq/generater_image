@@ -11,7 +11,7 @@ app = FastAPI(title="LoRA Image Generation API")
 
 # Cấu hình đường dẫn model
 # Trên RunPod, bạn có thể mount volume vào thư mục này để chứa model/lora
-MODEL_PATH = os.getenv("MODEL_PATH", "/app/models/noobai_xl_v1.1.safetensors")
+MODEL_PATH = os.getenv("MODEL_PATH", "/app/models/Juggernaut-XL_v9.safetensors")
 LORA_PATH = os.getenv("LORA_PATH", "/app/models/lora_lung_mat.safetensors")
 
 # Load model global khi khởi động
