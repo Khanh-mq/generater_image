@@ -34,13 +34,13 @@ class PromptItem(BaseModel):
 
 class GenerationRequest(BaseModel):
     prompts: List[PromptItem]
-    negative_prompt: Optional[str] = "realistic, 3d, photorealistic, blurry, multiple characters, character sheet, model sheet, reference sheet, collage, grid"
+    negative_prompt: Optional[str] = "anime, cartoon, graphic, text, painting, crayon, graphite, abstract, glitch, deformed, mutated, ugly, disfigured, blurry"
     width: Optional[int] = 1280
     height: Optional[int] = 720
-    num_steps: Optional[int] = 25
-    guidance_scale: Optional[float] = 11.0
+    num_steps: Optional[int] = 30
+    guidance_scale: Optional[float] = 6.0
     seed: Optional[int] = 42
-    lora_weight: Optional[float] = 0.8
+    lora_weight: Optional[float] = 0.0
 
 class ImageResult(BaseModel):
     shot_id: str
