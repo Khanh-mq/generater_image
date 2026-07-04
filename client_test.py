@@ -17,13 +17,11 @@ payload = {
     "prompts": [
         {
             "shot_id": "shot_01", 
-            "prompt_text": f"{BASE_PROMPT}, {OUTFIT}, walking home, carrying backpack, tired expression, sunset background, residential street",
-            "validation_query": "Is there a honey badger in this image?"
+            "prompt_text": f"{BASE_PROMPT}, {OUTFIT}, walking home, carrying backpack, tired expression, sunset background, residential street"
         },
         {
             "shot_id": "shot_02", 
-            "prompt_text": f"{BASE_PROMPT}, {OUTFIT}, drinking coffee, holding mug, sitting at table, morning sunlight, cozy room",
-            "validation_query": "Is there a honey badger in this image?"
+            "prompt_text": f"{BASE_PROMPT}, {OUTFIT}, drinking coffee, holding mug, sitting at table, morning sunlight, cozy room"
         }
     ],
     "negative_prompt": "realistic, 3d, photorealistic, blurry, multiple characters, extra limbs, bad anatomy, bad hands, missing fingers, human face, realistic animal, deformed, ugly, messy lines, text, signature, watermark",

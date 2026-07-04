@@ -1,6 +1,5 @@
 import torch
 from diffusers import StableDiffusionXLPipeline, AutoencoderKL, EulerAncestralDiscreteScheduler
-from transformers import Qwen2VLForConditionalGeneration, AutoProcessor
 import os
 
 def load_model(model_path: str, lora_path: str = None):
@@ -25,19 +24,9 @@ def load_model(model_path: str, lora_path: str = None):
     else:
         print("Bỏ qua bước load LoRA vì không tìm thấy file hoặc cấu hình không yêu cầu.")
     
-    print("Loading Qwen2-VL-2B for image validation...")
-    qwen_id = "Qwen/Qwen2-VL-2B-Instruct"
-    # Dùng torch.float16 để tiết kiệm VRAM
-    vlm_model = Qwen2VLForConditionalGeneration.from_pretrained(
-        qwen_id, torch_dtype=torch.float16, device_map="cuda"
-    )
-    vlm_processor = AutoProcessor.from_pretrained(qwen_id)
-    
     print("✅ All models loaded successfully!")
     return {
-        "sdxl": pipe,
-        "vlm_model": vlm_model,
-        "vlm_processor": vlm_processor
+        "sdxl": pipe
     }
 
 def generate_image(pipe, prompt, negative_prompt, width, height, num_steps, guidance_scale, seed, lora_weight):

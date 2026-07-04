@@ -30,7 +30,6 @@ async def startup_event():
 class PromptItem(BaseModel):
     shot_id: str
     prompt_text: str
-    validation_query: Optional[str] = None
 
 class GenerationRequest(BaseModel):
     prompts: List[PromptItem]
@@ -85,54 +84,7 @@ async def api_generate(request: GenerationRequest):
                 
                 best_image = image
                 best_seed = current_seed
-                
-                if item.validation_query:
-                    # Chạy Qwen2-VL để kiểm tra
-                    vlm_model = pipe["vlm_model"]
-                    vlm_processor = pipe["vlm_processor"]
-                    
-                    messages = [
-                        {
-                            "role": "user",
-                            "content": [
-                                {"type": "image", "image": image},
-                                {"type": "text", "text": f"{item.validation_query} Answer strictly with 'Yes' or 'No'."},
-                            ],
-                        }
-                    ]
-                    
-                    from qwen_vl_utils import process_vision_info
-                    text_prompt = vlm_processor.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
-                    image_inputs, video_inputs = process_vision_info(messages)
-                    
-                    inputs = vlm_processor(
-                        text=[text_prompt],
-                        images=image_inputs,
-                        videos=video_inputs,
-                        padding=True,
-                        return_tensors="pt"
-                    ).to("cuda")
-                    
-                    generated_ids = vlm_model.generate(**inputs, max_new_tokens=5)
-                    generated_ids_trimmed = [
-                        out_ids[len(in_ids):] for in_ids, out_ids in zip(inputs.input_ids, generated_ids)
-                    ]
-                    answer = vlm_processor.batch_decode(generated_ids_trimmed, skip_special_tokens=True, clean_up_tokenization_spaces=False)[0]
-                    
-                    print(f"Validation: '{item.validation_query}' -> Answer: {answer}")
-                    
-                    if "yes" in answer.lower():
-                        print(f"✅ Image passed validation!")
-                        break # Ảnh tốt, thoát vòng lặp retry
-                    else:
-                        print(f"❌ Image failed validation. Retrying...")
-                        current_seed = random.randint(1, 9999999)
-                        if attempt == 0:
-                            current_cfg = max(5.0, current_cfg - 2.0)
-                        elif attempt == 1:
-                            current_prompt = f"({current_prompt}:1.2)"
-                else:
-                    break # Không cần validate, thoát vòng lặp luôn
+                break # Sinh ảnh xong, thoát vòng lặp luôn
                 
             except Exception as e:
                 print(f"Error generating image for shot_id '{item.shot_id}': {str(e)}")
